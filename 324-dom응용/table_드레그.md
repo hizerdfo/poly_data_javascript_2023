@@ -1,0 +1,1 @@
+https://brainbell.com/javascript/making-resizable-table-js.html
