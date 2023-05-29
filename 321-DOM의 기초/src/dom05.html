@@ -25,6 +25,10 @@
             let messageClose = document.querySelector(".message-close");
             messageClose.addEventListener("click",function(e){
                 console.log(e);
+                // 이벤트가 발생된 타켓 = span
+                // 부모테그 div.message 의 스타일 display 속성을 none으로
+                // 설정해서 숨기기를 합니다.
+                e.target.parentElement.style.display="none";
             });
         });
 
