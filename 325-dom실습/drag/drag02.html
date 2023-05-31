@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag01</title>
+    <style>
+        ul {
+            display: inline-block;
+            list-style-type: none; /* 리스트 마커를 제거하려면 추가합니다 */
+            padding: 0;
+            margin: 0;
+        }
+
+        ul li {
+            display: inline-block; /* 리스트 항목을 가로로 배치합니다 */
+            margin-right: 10px; /* 각 항목 사이의 여백을 조절합니다 */
+            width: 50px;
+            height: 50px;
+            background-color: cadetblue;
+        }
+        .dragging {
+            background-color: yellow;
+        }
+        .selected {
+            background-color: black;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <ul id="sortable">
+        <li >아이템 1</li>
+        <li >아이템 2</li>
+        <li >아이템 3</li>
+        <li >아이템 4</li>
+        <li >아이템 5</li>
+    </ul>
+
+    <script>
+        // 드래그 중인 요소와 이전 위치를 저장할 변수
+        let draggedElement = null;
+        let prevIndex = null;
+
+        // 드래그 시작할 때 호출되는 함수
+        function dragStart(e) {
+            draggedElement = e.target;
+            prevIndex = Array.from(draggedElement.parentNode.children)
+                .indexOf(draggedElement);
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/html", draggedElement.innerHTML);
+            draggedElement.classList.add("dragging");
+        }
+
+        // 드래그 중일 때 호출되는 함수
+        function dragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+            const targetElement = event.target.closest("li");
+            if (targetElement && targetElement !== draggedElement) {
+                const currentIndex = Array.from(targetElement.parentNode.children).indexOf(targetElement);
+                if (currentIndex > prevIndex) {
+                targetElement.parentNode.insertBefore(draggedElement, targetElement.nextSibling);
+                } else {
+                targetElement.parentNode.insertBefore(draggedElement, targetElement);
+                }
+                prevIndex = currentIndex;
+            }
+        }
+
+        // 드래그 종료할 때 호출되는 함수
+        function dragEnd(event) {
+            draggedElement.classList.remove("dragging");
+            draggedElement = null;
+            prevIndex = null;
+        }
+
+        // ul 요소에 이벤트 리스너 등록
+        // const sortable = document.getElementById("sortable");
+        const sortable = document.querySelectorAll("#sortable li");
+        /*
+        sortable.addEventListener("dragstart", dragStart);
+        sortable.addEventListener("dragover", dragOver);
+        sortable.addEventListener("dragend", dragEnd);
+        */
+        //console.log(sortable);
+        sortable.forEach(function(el){
+            //console.log(el);
+            el.addEventListener("dragstart", dragStart);
+            el.addEventListener("dragover", dragOver);
+            el.addEventListener("dragend", dragEnd);
+            el.addEventListener('click', function(e){
+                e.preventDefault();
+                console.log(e.target.tagName);
+                if(e.target.tagName == "LI") {
+                    e.target.classList.toggle("selected");
+
+                    if(e.target.classList.contains("selected")) {
+                        e.target.setAttribute("draggable",true);
+                    } else {
+                        e.target.setAttribute("draggable",false);
+                    } 
+                }
+    
+                    
+       
+                          
+
+            });
+        });
+
+        /*
+        
+        */
+    </script>
+</body>
+</html>
