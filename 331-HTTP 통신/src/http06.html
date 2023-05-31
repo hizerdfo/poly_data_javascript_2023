@@ -23,9 +23,10 @@
         };
 
         function renderHTML(contents) {
-            let htmlString = ""; // 문자열 초기화
+            let result = document.getElementById("result");
+
             for (let content of contents) {
-                htmlString += `
+                result.innerHTML += `
                 <h2>${content.name}</h2>
                 <ul>
                     <li>전공: ${content.major}</li>
@@ -34,10 +35,6 @@
                 <hr>
                 `;
             }
-
-            // 완성된 HTML 문자열
-            document.getElementById("result")
-                .innerHTML = htmlString;
         }
 
 
