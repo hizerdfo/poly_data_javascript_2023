@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .container {
+            width: 1200px;
+            margin:0 auto;
+        }
+        table {
+            width: 100%;
+        }
+        table th, table td{
+            padding: 10px;
+        }
+
+        tr td:nth-child(1) {
+            width:30px;
+            text-align: center;
+        }
+        
+        tr td:nth-child(2) {
+            width:30px;
+            text-align: center;
+        }
+
+        table thead {
+            background-color: black;
+            color: white;
+        }
+        tbody > tr:nth-child(odd) {
+            background-color: lightgray;
+        }
+  
+        .pagenation {
+            display: inline-block;
+            list-style: none;
+            margin:0;
+            padding: 0;
+        }
+        .pagenation li {
+            display: inline-block;
+            text-align: center;
+            padding:5px;
+            width: 20px;
+            height: 20px;
+            margin-left: 5px;
+            border: 1px solid black;
+            cursor: pointer;
+        }
+        .selected {
+            background-color: bisque !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        <input type="checkbox" name="all" id="">
+                    </th>
+                    <th>Id</th>
+                    <th>타이틀</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+        <ul class="pagenation"></ul>
+    </div>
+
+    <script>
+        let current = 0;
+        let pageBlock = 10;
+        
+        let chkAll = document.querySelector("input[name='all']");
+        console.log(chkAll);
+        chkAll.addEventListener('click',function(){
+            let chks = document.querySelectorAll("input[name='items']");
+            console.log(chks);
+            chks.forEach(el=>{
+                if(chkAll.checked) {
+                    el.checked=true;
+                    let item = el.parentElement.parentElement;
+                    item.classList.toggle("selected");
+                    if(item.classList.contains("selected")) {
+                        item.setAttribute("draggable",true);
+
+                        item.addEventListener("dragstart", dragStart);
+                        item.addEventListener("dragover", dragOver);
+                        item.addEventListener("dragend", dragEnd);
+
+                    } else {
+                        item.setAttribute("draggable",false);
+
+                        item.removeEventListener("dragstart", dragStart);
+                        item.removeEventListener("dragover", dragOver);
+                        item.removeEventListener("dragend", dragEnd);
+                    }
+
+                } else {
+                    el.checked=false;
+                    let item = el.parentElement.parentElement;
+                    item.classList.toggle("selected");
+                    if(item.classList.contains("selected")) {
+                        item.setAttribute("draggable",true);
+                    } else {
+                        item.setAttribute("draggable",false);
+                    }
+                }
+            })
+        });
+
+        fetch('forum.json')
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Network response was not OK');
+            }
+            return response.json();
+        })
+        .then((data) => {
+            // 'data' is now a generic JavaScript object
+            //console.log(data);
+
+            let list = data.slice(current, pageBlock);
+
+            let table = createTable(list);
+
+            //let forum = document.querySelector(".container");
+            //forum.appendChild(table);
+
+            //forum.appendChild(pagenation(data));
+            pagenation(data);
+
+        })
+        .catch((error) => {
+            console.log('Error:', error);
+        });
+        
+        function pagenation(data) {
+            let pages = 0;
+            let pagenation = document.querySelector(".pagenation");
+
+            pages = parseInt(data.length/pageBlock);
+            //console.log("pages:"+pages);
+            if(data.length%pageBlock) {
+                pages = pages + 1;
+            }
+
+            for(let i=0; i<pages; i++) {
+                let item = document.createElement('li');
+                item.innerText = i+1;
+                item.addEventListener('click',function(e){
+                    let chkAll = document.querySelector("input[name='all']");
+                    chkAll.checked = false;
+
+                    current = parseInt(e.target.innerText)-1;
+                    let start = 0;
+                    start = current * pageBlock;
+                    console.log(start);
+
+                    let list = data.slice(start, start+pageBlock);
+                    createTable(list);
+                    
+                })
+                pagenation.appendChild(item);
+            }
+
+            pagenation.classList.add("pagenation");
+            return pagenation;
+        }
+
+        function createTable(obj) {
+            let table = document.querySelector(".table");
+            let old = table.querySelector("tbody");
+
+            let tbody = document.createElement('tbody');
+            obj.forEach(el => {
+
+                let tr = document.createElement('tr');
+
+                let td = document.createElement('td');
+                let checkbox = document.createElement('input');
+                checkbox.type = "checkbox";
+                checkbox.name = "items";
+                checkbox.addEventListener('click',function(e){
+                    let item = e.target.parentElement.parentElement;
+                    item.classList.toggle("selected");
+                    if(item.classList.contains("selected")) {
+                        item.setAttribute("draggable",true);
+
+                        item.addEventListener("dragstart", dragStart);
+                        item.addEventListener("dragover", dragOver);
+                        item.addEventListener("dragend", dragEnd);
+
+                    } else {
+                        item.setAttribute("draggable",false);
+
+                        item.removeEventListener("dragstart", dragStart);
+                        item.removeEventListener("dragover", dragOver);
+                        item.removeEventListener("dragend", dragEnd);
+                    }
+                })
+                td.appendChild(checkbox);
+                tr.appendChild(td);
+
+
+                td = document.createElement('td');
+                td.innerHTML = el['id'];
+                tr.appendChild(td);
+
+                td = document.createElement('td');
+                td.innerHTML = el['title'];
+                tr.appendChild(td);
+
+                tbody.appendChild(tr);
+            });
+
+            table.replaceChild(tbody, old);
+        }
+
+
+        // 드래그 중인 요소와 이전 위치를 저장할 변수
+        let draggedElement = null;
+        let prevIndex = null;
+
+        // 드래그 시작할 때 호출되는 함수
+        function dragStart(e) {
+            draggedElement = e.target;
+            console.log(draggedElement)
+            prevIndex = Array.from(draggedElement.parentNode.children)
+                .indexOf(draggedElement);
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/html", draggedElement.innerHTML);
+            draggedElement.classList.add("dragging");
+        }
+
+        // 드래그 중일 때 호출되는 함수
+        function dragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+            const targetElement = event.target.closest("tr");
+            if (targetElement && targetElement !== draggedElement) {
+                const currentIndex = Array.from(targetElement.parentNode.children).indexOf(targetElement);
+                if (currentIndex > prevIndex) {
+                targetElement.parentNode.insertBefore(draggedElement, targetElement.nextSibling);
+                } else {
+                targetElement.parentNode.insertBefore(draggedElement, targetElement);
+                }
+                prevIndex = currentIndex;
+            }
+        }
+
+        // 드래그 종료할 때 호출되는 함수
+        function dragEnd(event) {
+            draggedElement.classList.remove("dragging");
+            draggedElement = null;
+            prevIndex = null;
+        }
+
+</script>
+</body>
+</html>
